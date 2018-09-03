@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { WorkoutPlan, ExercisePlan, Exercise } from './model';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'abe-workout-runner',
@@ -11,7 +12,7 @@ import { WorkoutPlan, ExercisePlan, Exercise } from './model';
 export class WorkoutRunnerComponent implements OnInit {
   exerciseTrackingInterval: number;
 
-  constructor() { }
+  constructor(private router:Router) { }
 
   workoutPlan: WorkoutPlan;
   restExercise: ExercisePlan;
@@ -73,7 +74,7 @@ export class WorkoutRunnerComponent implements OnInit {
           this.startExercise(next);
         }
         else {
-          console.log('Workout complete!');
+          this.router.navigate( ['/finish'] );
         }
         return;
       }
