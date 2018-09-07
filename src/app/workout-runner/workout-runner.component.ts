@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { WorkoutPlan, ExercisePlan, Exercise } from './model';
 import { Router } from '@angular/router';
+import { WorkoutHistoryTrackerService } from '../core/workout-history-tracker.service';
 
 @Component({
   selector: 'abe-workout-runner',
@@ -12,7 +13,7 @@ import { Router } from '@angular/router';
 export class WorkoutRunnerComponent implements OnInit {
   exerciseTrackingInterval: number;
 
-  constructor(private router:Router) { }
+  constructor(private router: Router, private tracker: WorkoutHistoryTrackerService) { }
 
   workoutPlan: WorkoutPlan;
   restExercise: ExercisePlan;
@@ -48,10 +49,13 @@ export class WorkoutRunnerComponent implements OnInit {
       this.workoutPlan.restBetweenExercise);
     this.start();
   }
+  ngOnDestroy() {
+    this.tracker.endTracking(false);
+  }
 
   start() {
-    this.workoutTimeRemaining =
-      this.workoutPlan.totalWorkoutDuration();
+    this.tracker.startTracking();
+    this.workoutTimeRemaining = this.workoutPlan.totalWorkoutDuration();
     this.currentExerciseIndex = 0;
     this.startExercise(this.workoutPlan.exercises[this.currentExerciseIndex]);
   }
@@ -66,6 +70,9 @@ export class WorkoutRunnerComponent implements OnInit {
     this.exerciseTrackingInterval = window.setInterval(() => {
       if (this.exerciseRunningDuration >= this.currentExercise.duration) {
         clearInterval(this.exerciseTrackingInterval);
+        if (this.currentExercise !== this.restExercise) {
+          this.tracker.exerciseComplete(this.workoutPlan.exercises[this.currentExerciseIndex]);
+        }
         const next: ExercisePlan = this.getNextExercise();
         if (next) {
           if (next !== this.restExercise) {
@@ -74,7 +81,8 @@ export class WorkoutRunnerComponent implements OnInit {
           this.startExercise(next);
         }
         else {
-          this.router.navigate( ['/finish'] );
+          this.tracker.endTracking(true);
+          this.router.navigate(['/finish']);
         }
         return;
       }
