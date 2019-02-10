@@ -6,7 +6,7 @@
     </div>
   </div>
 </div> -->
-<div *ngFor="let video of videos" class="row">
+<div *ngFor="let video of videos" class="row" (click)="playVideo(video)">
   <div class="col-sm-12 p-2">
     <img class="video-image" [src]="'//i.ytimg.com/vi/'+video+'/hqdefault.jpg'" />
   </div>

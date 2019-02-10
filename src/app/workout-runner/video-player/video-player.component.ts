@@ -1,27 +1,29 @@
-import { Component, OnInit, OnChanges, Input, ViewEncapsulation } from '@angular/core';
-import { SafeResourceUrl, DomSanitizer } from '@angular/platform-browser';
+import { Component, OnInit, Input, ViewEncapsulation, EventEmitter, Output } from '@angular/core';
+import { Modal } from 'ngx-modialog/plugins/bootstrap';
+import { VideoDialogComponent, VideoDialogContext } from './video-dialog/video-dialog.component';
+import { overlayConfigFactory } from 'ngx-modialog';
 
 @Component({
   selector: 'abe-video-player',
   templateUrl: './video-player.component.html',
-  styles:[]
+  styles: []
 })
-export class VideoPlayerComponent implements OnInit, OnChanges {
-
-  private youtubeUrlPrefix = '//www.youtube.com/embed/';
+export class VideoPlayerComponent implements OnInit {
 
   @Input() videos: Array<string>;
-  safeVideoUrls: Array<SafeResourceUrl>;
 
-  constructor(private sanitizer: DomSanitizer) { }
+  @Output() videoDialogOpened: EventEmitter<void> =  new EventEmitter<void>();
+  @Output() videoDialogClosed: EventEmitter<void> =  new EventEmitter<void>();
 
-  ngOnChanges() {
-    this.safeVideoUrls = this.videos ?
-      this.videos.map(v => this.sanitizer.bypassSecurityTrustResourceUrl(this.youtubeUrlPrefix + v))
-      : this.videos;
-  }
+  constructor(private modal: Modal) { }
 
   ngOnInit() {
   }
 
+  playVideo(videoId: string) {
+    this.videoDialogOpened.emit();
+    var dialog=this.modal.open(VideoDialogComponent, overlayConfigFactory(new VideoDialogContext(videoId)));
+    dialog.result
+    .then(() => { this.videoDialogClosed.emit(); }, (error) => { this.videoDialogClosed.emit(); });
+  };
 }

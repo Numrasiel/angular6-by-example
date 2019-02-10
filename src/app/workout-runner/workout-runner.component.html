@@ -2,7 +2,6 @@
   <div id="description-panel" class="col-sm-3">
     <abe-exercise-description [description]="currentExercise.exercise.description" [steps]="currentExercise.exercise.procedure"></abe-exercise-description>
   </div>
-
   <div id="exercise-pane" class="col-sm-6">
     <div id="pause-overlay" (click)="pauseResumeToggle()" (window:keyup)="onKeyPressed($event)">
       <span class="pause absolute-center" [ngClass]="{'ion-md-pause' : !workoutPaused, 'ion-md-play' : workoutPaused}"></span>
@@ -29,6 +28,7 @@
     </div>
   </div>
   <div id="video-panel" class="col-sm-3">
-    <abe-video-player [videos]="currentExercise.exercise.videos"></abe-video-player>
+    <abe-video-player [videos]="currentExercise.exercise.videos" (videoDialogOpened)="pause()" (videoDialogClosed)="resume()"></abe-video-player>
   </div>
+  <!-- <abe-workout-audio></abe-workout-audio>	 -->
 </div>

@@ -17,7 +17,8 @@ import { SharedModule } from './shared/shared.module';
     AppComponent,
     StartComponent,
     FinishComponent,
-    WorkoutHistoryComponent
+    WorkoutHistoryComponent,
+    
   ],
   imports: [
     BrowserModule,

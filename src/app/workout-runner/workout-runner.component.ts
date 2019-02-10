@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { WorkoutPlan, ExercisePlan, Exercise } from './model';
+import { Component, OnInit, ViewChild, Output, EventEmitter } from '@angular/core';
+import { WorkoutPlan, ExercisePlan, Exercise, ExerciseChangedEvent, ExerciseProgressEvent } from './model';
 import { Router } from '@angular/router';
 import { WorkoutHistoryTrackerService } from '../core/workout-history-tracker.service';
+//import { WorkoutAudioComponent } from './workout-audio/workout-audio.component';
 
 @Component({
   selector: 'abe-workout-runner',
@@ -11,6 +12,7 @@ import { WorkoutHistoryTrackerService } from '../core/workout-history-tracker.se
   styles: []
 })
 export class WorkoutRunnerComponent implements OnInit {
+  //@ViewChild(WorkoutAudioComponent) workoutAudioPlayer: WorkoutAudioComponent;
   exerciseTrackingInterval: number;
 
   constructor(private router: Router, private tracker: WorkoutHistoryTrackerService) { }
@@ -22,6 +24,19 @@ export class WorkoutRunnerComponent implements OnInit {
   currentExercise: ExercisePlan;
   exerciseRunningDuration: number;
   workoutPaused: boolean;
+  @Output() exercisePaused: EventEmitter<number> =
+    new EventEmitter<number>();
+  @Output() exerciseResumed: EventEmitter<number> =
+    new EventEmitter<number>();
+  @Output() exerciseProgress: EventEmitter<ExerciseProgressEvent> =
+    new EventEmitter<ExerciseProgressEvent>();
+  @Output() exerciseChanged: EventEmitter<ExerciseChangedEvent> =
+    new EventEmitter<ExerciseChangedEvent>();
+  @Output() workoutStarted: EventEmitter<WorkoutPlan> =
+    new EventEmitter<WorkoutPlan>();
+  @Output() workoutComplete: EventEmitter<WorkoutPlan> =
+    new EventEmitter<WorkoutPlan>();
+
 
   onKeyPressed(event: KeyboardEvent) {
     if (event.which === 80 || event.which === 112) {
@@ -32,10 +47,12 @@ export class WorkoutRunnerComponent implements OnInit {
   pause() {
     clearInterval(this.exerciseTrackingInterval);
     this.workoutPaused = true;
+    this.exercisePaused.emit(this.currentExerciseIndex);
   }
   resume() {
     this.startExerciseTimeTracking();
     this.workoutPaused = false;
+    this.exerciseResumed.emit(this.currentExerciseIndex);
   }
   pauseResumeToggle() {
     if (this.workoutPaused) { this.resume(); }
@@ -79,15 +96,24 @@ export class WorkoutRunnerComponent implements OnInit {
             this.currentExerciseIndex++;
           }
           this.startExercise(next);
+          this.exerciseChanged.emit(new ExerciseChangedEvent(next, this.getNextExercise()));
+
         }
         else {
           this.tracker.endTracking(true);
+          this.workoutComplete.emit(this.workoutPlan);
           this.router.navigate(['/finish']);
         }
         return;
       }
       ++this.exerciseRunningDuration;
       --this.workoutTimeRemaining;
+      this.exerciseProgress.emit(new ExerciseProgressEvent(
+        this.currentExercise,
+        this.exerciseRunningDuration,
+        this.currentExercise.duration - this.exerciseRunningDuration,
+        this.workoutTimeRemaining));
+
     }, 1000);
   }
 
