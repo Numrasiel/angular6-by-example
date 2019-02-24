@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { SafeResourceUrl, DomSanitizer } from '@angular/platform-browser';
 import { DialogRef, ModalComponent, CloseGuard } from 'ngx-modialog';
-import { BSModalContext } from 'ngx-modialog/plugins/bootstrap';
+import { BSModalContext, bootstrap4Mode } from 'ngx-modialog/plugins/bootstrap';
+bootstrap4Mode();
 
 export class VideoDialogContext extends BSModalContext {
   constructor(public videoId: string) {
@@ -16,7 +17,6 @@ export class VideoDialogContext extends BSModalContext {
   styles:[]
 })
 export class VideoDialogComponent implements OnInit, ModalComponent<VideoDialogContext> {
-
   videoId: SafeResourceUrl;
   private youtubeUrlPrefix = '//www.youtube.com/embed/';
   constructor(public dialog: DialogRef<VideoDialogContext>, private sanitizer: DomSanitizer) { }
@@ -24,6 +24,7 @@ export class VideoDialogComponent implements OnInit, ModalComponent<VideoDialogC
   ngOnInit() {
     this.videoId = this.sanitizer.bypassSecurityTrustResourceUrl(this.youtubeUrlPrefix + this.dialog.context.videoId);
   }
+
   ok() {
     this.dialog.close();
   }

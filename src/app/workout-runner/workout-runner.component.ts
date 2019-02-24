@@ -1,73 +1,43 @@
-import { Component, OnInit, ViewChild, Output, EventEmitter } from '@angular/core';
-import { WorkoutPlan, ExercisePlan, Exercise, ExerciseChangedEvent, ExerciseProgressEvent } from './model';
+import { Component, OnInit, OnDestroy, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
+import { WorkoutPlan, ExercisePlan, Exercise, ExerciseProgressEvent, ExerciseChangedEvent } from '../core/model';
 import { Router } from '@angular/router';
 import { WorkoutHistoryTrackerService } from '../core/workout-history-tracker.service';
-//import { WorkoutAudioComponent } from './workout-audio/workout-audio.component';
 
 @Component({
   selector: 'abe-workout-runner',
   templateUrl: './workout-runner.component.html',
-  // template: `<pre>Current Exercise: {{currentExercise | json}}</pre>  
-  // <pre>Time Left: {{currentExercise.duration - exerciseRunningDuration}}</pre>`,
   styles: []
 })
-export class WorkoutRunnerComponent implements OnInit {
-  //@ViewChild(WorkoutAudioComponent) workoutAudioPlayer: WorkoutAudioComponent;
-  exerciseTrackingInterval: number;
-
-  constructor(private router: Router, private tracker: WorkoutHistoryTrackerService) { }
-
+export class WorkoutRunnerComponent implements OnInit, OnDestroy {
   workoutPlan: WorkoutPlan;
-  restExercise: ExercisePlan;
   workoutTimeRemaining: number;
+  restExercise: ExercisePlan;
   currentExerciseIndex: number;
   currentExercise: ExercisePlan;
   exerciseRunningDuration: number;
+  exerciseTrackingInterval: number;
   workoutPaused: boolean;
-  @Output() exercisePaused: EventEmitter<number> =
-    new EventEmitter<number>();
-  @Output() exerciseResumed: EventEmitter<number> =
-    new EventEmitter<number>();
-  @Output() exerciseProgress: EventEmitter<ExerciseProgressEvent> =
-    new EventEmitter<ExerciseProgressEvent>();
-  @Output() exerciseChanged: EventEmitter<ExerciseChangedEvent> =
-    new EventEmitter<ExerciseChangedEvent>();
-  @Output() workoutStarted: EventEmitter<WorkoutPlan> =
-    new EventEmitter<WorkoutPlan>();
-  @Output() workoutComplete: EventEmitter<WorkoutPlan> =
-    new EventEmitter<WorkoutPlan>();
 
+  @Output() exercisePaused: EventEmitter<number> = new EventEmitter<number>();
+  @Output() exerciseResumed: EventEmitter<number> = new EventEmitter<number>();
+  @Output() exerciseProgress: EventEmitter<ExerciseProgressEvent> = new EventEmitter<ExerciseProgressEvent>();
+  @Output() exerciseChanged: EventEmitter<ExerciseChangedEvent> = new EventEmitter<ExerciseChangedEvent>();
+  @Output() workoutStarted: EventEmitter<WorkoutPlan> = new EventEmitter<WorkoutPlan>();
+  @Output() workoutComplete: EventEmitter<WorkoutPlan> = new EventEmitter<WorkoutPlan>();
 
-  onKeyPressed(event: KeyboardEvent) {
-    if (event.which === 80 || event.which === 112) {
-      this.pauseResumeToggle();
-    }
+  constructor(private router: Router,
+    private tracker: WorkoutHistoryTrackerService) {
   }
 
-  pause() {
-    clearInterval(this.exerciseTrackingInterval);
-    this.workoutPaused = true;
-    this.exercisePaused.emit(this.currentExerciseIndex);
-  }
-  resume() {
-    this.startExerciseTimeTracking();
-    this.workoutPaused = false;
-    this.exerciseResumed.emit(this.currentExerciseIndex);
-  }
-  pauseResumeToggle() {
-    if (this.workoutPaused) { this.resume(); }
-    else { this.pause(); }
+  ngOnDestroy() {
+    if (this.exerciseTrackingInterval) { clearInterval(this.exerciseTrackingInterval); }
+    this.tracker.endTracking(false);
   }
 
   ngOnInit() {
     this.workoutPlan = this.buildWorkout();
-    this.restExercise = new ExercisePlan(
-      new Exercise('rest', 'Relax!', 'Relax a bit', 'rest.png'),
-      this.workoutPlan.restBetweenExercise);
+    this.restExercise = new ExercisePlan(new Exercise('rest', 'Relax!', 'Relax a bit', 'rest.png'), this.workoutPlan.restBetweenExercise);
     this.start();
-  }
-  ngOnDestroy() {
-    this.tracker.endTracking(false);
   }
 
   start() {
@@ -75,6 +45,34 @@ export class WorkoutRunnerComponent implements OnInit {
     this.workoutTimeRemaining = this.workoutPlan.totalWorkoutDuration();
     this.currentExerciseIndex = 0;
     this.startExercise(this.workoutPlan.exercises[this.currentExerciseIndex]);
+    this.workoutStarted.emit(this.workoutPlan);
+  }
+
+  pause() {
+    clearInterval(this.exerciseTrackingInterval);
+    this.workoutPaused = true;
+    this.exercisePaused.emit(this.currentExerciseIndex);
+  }
+
+  resume() {
+    this.startExerciseTimeTracking();
+    this.workoutPaused = false;
+    this.exerciseResumed.emit(this.currentExerciseIndex);
+  }
+
+  pauseResumeToggle() {
+    if (this.workoutPaused) {
+      this.resume();
+    }
+    else {
+      this.pause();
+    }
+  }
+
+  onKeyPressed(event: KeyboardEvent) {
+    if (event.which === 80 || event.which === 112) {        // 'p' or 'P' key to toggle pause and resume.
+      this.pauseResumeToggle();
+    }
   }
 
   startExercise(exercisePlan: ExercisePlan) {
@@ -97,7 +95,6 @@ export class WorkoutRunnerComponent implements OnInit {
           }
           this.startExercise(next);
           this.exerciseChanged.emit(new ExerciseChangedEvent(next, this.getNextExercise()));
-
         }
         else {
           this.tracker.endTracking(true);
@@ -112,11 +109,10 @@ export class WorkoutRunnerComponent implements OnInit {
         this.currentExercise,
         this.exerciseRunningDuration,
         this.currentExercise.duration - this.exerciseRunningDuration,
-        this.workoutTimeRemaining));
-
+        this.workoutTimeRemaining
+      ));
     }, 1000);
   }
-
 
   getNextExercise(): ExercisePlan {
     let nextExercise: ExercisePlan = null;
@@ -126,6 +122,7 @@ export class WorkoutRunnerComponent implements OnInit {
     else if (this.currentExerciseIndex < this.workoutPlan.exercises.length - 1) {
       nextExercise = this.restExercise;
     }
+
     return nextExercise;
   }
 
@@ -139,11 +136,11 @@ export class WorkoutRunnerComponent implements OnInit {
           'A jumping jack or star jump, also called side-straddle hop is a physical jumping exercise.',
           'JumpingJacks.png',
           'jumpingjacks.wav',
-          `Assume an erect position, with feet together and arms at your side.
-                            Slightly bend your knees, and propel yourself a few inches into the air.
-                            While in air, bring your legs out to the side about shoulder width or slightly wider.
+          `Assume an erect position, with feet together and arms at your side. <br>
+                            Slightly bend your knees, and propel yourself a few inches into the air. <br>
+                            While in air, bring your legs out to the side about shoulder width or slightly wider. <br>
                             As you are moving your legs outward, you should raise your arms up over your head; arms should be
-                            slightly bent throughout the entire in-air movement.
+                            slightly bent throughout the entire in-air movement. <br>
                             Your feet should land shoulder width or wider as your hands meet above your head with arms slightly bent`,
           ['dmYwZH_BNd0', 'BABOdJ-2Z6o', 'c4DAnQ6DtF8']),
         30));
@@ -312,5 +309,4 @@ export class WorkoutRunnerComponent implements OnInit {
 
     return workout;
   }
-
 }

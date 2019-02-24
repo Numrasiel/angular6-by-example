@@ -1,24 +1,21 @@
-import { Component, OnInit, ViewChild,	Inject,	forwardRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { MyAudioDirective } from '../../shared/my-audio.directive';
-import { ExerciseProgressEvent, ExerciseChangedEvent, ExercisePlan } from '../model';
-import { WorkoutRunnerComponent } from '../workout-runner.component';
+import { ExerciseProgressEvent, ExerciseChangedEvent } from '../../core/model';
 
 @Component({
   selector: 'abe-workout-audio',
   templateUrl: './workout-audio.component.html',
   styles: []
 })
-export class WorkoutAudioComponent implements OnInit,AfterViewInit{
+export class WorkoutAudioComponent implements OnInit {
   @ViewChild('ticks') private ticks: MyAudioDirective;
   @ViewChild('nextUp') private nextUp: MyAudioDirective;
   @ViewChild('nextUpExercise') private nextUpExercise: MyAudioDirective;
   @ViewChild('halfway') private halfway: MyAudioDirective;
   @ViewChild('aboutToComplete') private aboutToComplete: MyAudioDirective;
-  private nextupSound: string='nextup.mp3';
+  private nextupSound: string;
 
-  constructor(){}
-  
-  ngAfterViewInit()	{	this.ticks.start();	}
+  constructor() { }
 
   ngOnInit() {
   }

@@ -14,7 +14,7 @@ export class WorkoutHistoryComponent implements OnInit {
   ngOnInit() {
     this.history = this.tracker.getHistory();
   }
-  
+
   goBack() {
     this.location.back();
   }
