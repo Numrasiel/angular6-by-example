@@ -1,9 +1,7 @@
-// import 'rxjs/add/operator/map';
-// import 'rxjs/add/operator/take';
-// import { Observable } from 'rxjs/Observableservable';
+import { Resolve, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Injectable } from '@angular/core';
-import { Router, Resolve, RouterStateSnapshot,
-         ActivatedRouteSnapshot } from '@angular/router';
+//import { Observable } from 'rxjs/Observable';
+
 import { WorkoutPlan } from '../../core/model';
 import { WorkoutBuilderService } from '../builder-services/workout-builder.service';
 
