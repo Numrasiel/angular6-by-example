@@ -6,8 +6,7 @@ import { WorkoutService } from '../../core/workout.service';
 
 @Component({
   selector: 'abe-workouts',
-  templateUrl: './workouts.component.html',
-  styles: []
+  templateUrl: './workouts.component.html'
 })
 export class WorkoutsComponent implements OnInit {
   workoutList: Array<WorkoutPlan> = [];

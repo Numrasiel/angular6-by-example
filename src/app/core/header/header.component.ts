@@ -7,8 +7,7 @@ import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 
 @Component({
   selector: 'abe-header',
-  templateUrl: './header.component.html',
-  styles:[]
+  templateUrl: './header.component.html'
 })
 export class HeaderComponent implements OnInit {
 

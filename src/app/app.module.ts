@@ -10,6 +10,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { CoreModule } from './core/core.module';
 import { WorkoutHistoryComponent } from './workout-history/workout-history.component';
 import { SharedModule } from './shared/shared.module';
+
 @NgModule({
   declarations: [
     AppComponent,
